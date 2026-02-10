@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dork Pro: Ultimate Search Operator Tool | Pierre Cochart</title>
+    <meta name="description" content="The ultimate Google Dork builder. 30+ SEO presets plus a custom operator builder for advanced users. Audit sites, find backlinks, and uncover hidden data.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #a855f7;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        header { text-align: center; margin-bottom: 2.5rem; }
+        
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle { color: var(--secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+        /* --- Mode Toggle --- */
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-btn {
+            background: var(--card);
+            border: 2px solid var(--border);
+            padding: 0.75rem 2rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--secondary);
+        }
+
+        .mode-btn.active {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        /* --- Main Input Area --- */
+        .search-box {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 20px;
+            z-index: 50;
+        }
+
+        .input-group { position: relative; display: flex; gap: 1rem; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .action-btn {
+            padding: 0 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        .btn-google { 
+            background: linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335); 
+            color: white; 
+            padding: 2px;
+            border-radius: 0.8rem;
+        }
+
+        .btn-google-inner {
+            background: white;
+            color: var(--text);
+            height: 100%;
+            width: 100%;
+            border-radius: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.5rem;
+        }
+        
+        .btn-google:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3); }
+
+        .btn-clear {
+            background: var(--bg);
+            color: var(--secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-clear:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; }
+
+        /* --- Live Preview --- */
+        .dork-preview {
+            margin-top: 1.5rem;
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: var(--primary-dark);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px dashed var(--secondary);
+        }
+
+        .copy-icon {
+            cursor: pointer;
+            color: var(--secondary);
+            transition: color 0.2s;
+        }
+        .copy-icon:hover { color: var(--primary); }
+
+        /* --- View: Presets --- */
+        #view-presets { display: block; }
+        
+        .categories-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cat-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            font-weight: 600;
+            color: var(--secondary);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .cat-btn:hover { background: #f1f5f9; }
+        .cat-btn.active { background: #e0e7ff; color: var(--primary); border-color: #c7d2fe; }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .preset-card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preset-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.15);
+        }
+
+        .preset-card.active { border-color: var(--primary); background: #eef2ff; }
+        .card-icon { font-size: 1.5rem; margin-bottom: 0.75rem; display: block; }
+        .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; color: var(--text); }
+        .card-desc { font-size: 0.85rem; color: var(--secondary); }
+
+        /* --- View: Builder --- */
+        #view-builder { display: none; }
+
+        .builder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .operator-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .operator-btn:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .op-code {
+            font-family: 'Monaco', monospace;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .op-desc { font-size: 0.8rem; color: var(--secondary); line-height: 1.3; }
+
+        /* --- Footer --- */
+        .footer-cta {
+            margin-top: 5rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 3rem;
+        }
+
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #1e293b; color: white; padding: 0.75rem 1.5rem; border-radius: 99px;
+            font-size: 0.9rem; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 2rem; }
+            .input-group { flex-direction: column; }
+            .action-btn { width: 100%; justify-content: center; height: 50px; }
+            .mode-switch { flex-direction: column; gap: 0.5rem; }
+            .mode-btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Dork Pro</h1>
+            <p class="subtitle">The ultimate Google Search Operator toolkit. Build queries visually or create your own.</p>
+        </header>
+
+        <div class="mode-switch">
+            <div class="mode-btn active" onclick="switchView('presets')">📚 Preset Library</div>
+            <div class="mode-btn" onclick="switchView('builder')">🛠 Custom Builder</div>
+        </div>
+
+        <main>
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" id="main-input" placeholder="Select a preset below to start...">
+                    <button class="action-btn btn-clear" id="clear-btn" title="Clear Input">X</button>
+                    <button class="action-btn btn-google" id="search-btn">
+                        <div class="btn-google-inner">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.013-1.133 8.107-3.293 2.133-2.147 2.8-5.16 2.8-7.707 0-.76-.053-1.467-.173-2.08H12.48z"/></svg>
+                            Search
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="dork-preview">
+                    <span id="dork-output" style="word-break: break-all;">...</span>
+                    <svg class="copy-icon" onclick="copyDork()" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+
+            <div id="view-presets">
+                <nav class="categories-nav">
+                    <button class="cat-btn active" onclick="filterPresets('all')">All</button>
+                    <button class="cat-btn" onclick="filterPresets('link-building')">Link Building</button>
+                    <button class="cat-btn" onclick="filterPresets('technical')">Technical SEO</button>
+                    <button class="cat-btn" onclick="filterPresets('security')">Security & Files</button>
+                    <button class="cat-btn" onclick="filterPresets('social')">Social & Brand</button>
+                    <button class="cat-btn" onclick="filterPresets('content')">Content Ideas</button>
+                </nav>
+
+                <div class="presets-grid" id="grid">
+                    </div>
+            </div>
+
+            <div id="view-builder">
+                <p style="margin-bottom: 1.5rem; color: var(--secondary); text-align: center;">Click operators to append them to your search query.</p>
+                <div class="builder-grid" id="builder-grid">
+                    </div>
+            </div>
+        </main>
+
+        <footer class="footer-cta">
+            <p style="margin-bottom: 1.5rem; font-weight: 600; color: var(--secondary);">Find this tool useful?</p>
+            <a href="https://www.buymeacoffee.com/PierreCochart" target="_blank">
+                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px; width: 217px;">
+            </a>
+            <p style="margin-top: 2rem; font-size: 0.8rem; color: #cbd5e1;">&copy; 2024 Pierre Cochart. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <div id="toast">Copied to clipboard!</div>
+
+    <script>
+        // --- DATA CONFIGURATION ---
+        
+        const presets = [
+            // Link Building
+            { id: 'guest-post', cat: 'link-building', icon: '✍️', title: 'Guest Post Opportunities', desc: 'Find sites accepting contributors.', tmpl: 'KEYWORD "write for us" OR "guest post" OR "submit article"', ph: 'Enter niche (e.g. crypto)' },
+            { id: 'resource-page', cat: 'link-building', icon: '🔗', title: 'Resource Pages', desc: 'Find link lists in your niche.', tmpl: 'KEYWORD intitle:resources OR intitle:"useful links"', ph: 'Enter niche' },
+            { id: 'sponsored', cat: 'link-building', icon: '💰', title: 'Sponsored Posts', desc: 'Find sites accepting paid posts.', tmpl: 'KEYWORD "sponsored post" OR "partner with us"', ph: 'Enter niche' },
+            { id: 'broken-link', cat: 'link-building', icon: '💔', title: 'Broken Link Hunt', desc: 'Old resource pages likely to have broken links.', tmpl: 'KEYWORD intitle:links AND intext:"last updated" -intext:2025 -intext:2024', ph: 'Enter niche' },
+            { id: 'forums', cat: 'link-building', icon: '💬', title: 'Niche Forums', desc: 'Find communities to engage with.', tmpl: 'KEYWORD "powered by vbulletin" OR "powered by phpbb"', ph: 'Enter niche' },
+            { id: 'edu-links', cat: 'link-building', icon: '🎓', title: '.EDU Links', desc: 'Find academic sites mentioning your keywords.', tmpl: 'site:.edu KEYWORD', ph: 'Enter topic' },
+            { id: 'gov-links', cat: 'link-building', icon: '🏛️', title: '.GOV Links', desc: 'Find government sites mentioning your keywords.', tmpl: 'site:.gov KEYWORD', ph: 'Enter topic' },
+
+            // Technical SEO
+            { id: 'non-secure', cat: 'technical', icon: '🔓', title: 'Non-Secure (HTTP)', desc: 'Find pages not using SSL.', tmpl: 'site:DOMAIN -inurl:https', ph: 'Enter domain' },
+            { id: 'subdomains', cat: 'technical', icon: '🌐', title: 'Subdomain Finder', desc: 'Reveal indexed subdomains.', tmpl: 'site:DOMAIN -inurl:www', ph: 'Enter domain' },
+            { id: 'duplicate', cat: 'technical', icon: '👯', title: 'Duplicate Content', desc: 'Find copies of your text.', tmpl: '"KEYWORD"', ph: 'Paste a unique sentence' },
+            { id: 'indexed-count', cat: 'technical', icon: '📈', title: 'Indexed Pages', desc: 'See roughly how many pages are indexed.', tmpl: 'site:DOMAIN', ph: 'Enter domain' },
+            { id: 'mobile-sub', cat: 'technical', icon: '📱', title: 'Mobile Subdomains', desc: 'Find m. subdomain issues.', tmpl: 'site:DOMAIN inurl:m.', ph: 'Enter domain' },
+            { id: 'parameters', cat: 'technical', icon: '⚙️', title: 'URL Parameters', desc: 'Find messy URL parameters indexed.', tmpl: 'site:DOMAIN inurl:?', ph: 'Enter domain' },
+
+            // Security & Files
+            { id: 'pdf-files', cat: 'security', icon: '📄', title: 'PDF Documents', desc: 'Find public PDFs.', tmpl: 'site:DOMAIN filetype:pdf', ph: 'Enter domain' },
+            { id: 'config-files', cat: 'security', icon: '⚠️', title: 'Exposed Configs', desc: 'Find env or config files.', tmpl: 'site:DOMAIN filetype:env OR filetype:config', ph: 'Enter domain' },
+            { id: 'sql-dumps', cat: 'security', icon: '🗄️', title: 'SQL Dumps', desc: 'Find exposed database exports.', tmpl: 'site:DOMAIN filetype:sql', ph: 'Enter domain' },
+            { id: 'log-files', cat: 'security', icon: '📝', title: 'Log Files', desc: 'Find server logs.', tmpl: 'site:DOMAIN filetype:log', ph: 'Enter domain' },
+            { id: 'dir-listing', cat: 'security', icon: '📂', title: 'Directory Listing', desc: 'Find open directories.', tmpl: 'site:DOMAIN intitle:"index of /"', ph: 'Enter domain' },
+            { id: 'spreadsheets', cat: 'security', icon: '📊', title: 'Spreadsheets', desc: 'Find Excel data.', tmpl: 'site:DOMAIN filetype:xls OR filetype:xlsx OR filetype:csv', ph: 'Enter domain' },
+
+            // Social & Brand
+            { id: 'competitor', cat: 'social', icon: '🥊', title: 'Competitor Mentions', desc: 'Where they are mentioned (excluding their site).', tmpl: 'intext:"COMPETITOR" -site:COMPETITOR', ph: 'Enter competitor name' },
+            { id: 'twitter-lists', cat: 'social', icon: '🐦', title: 'Twitter Lists', desc: 'Find curated lists of users.', tmpl: 'site:twitter.com inurl:lists KEYWORD', ph: 'Enter topic' },
+            { id: 'linkedin-ppl', cat: 'social', icon: '👔', title: 'LinkedIn Profiles', desc: 'Find employees or people.', tmpl: 'site:linkedin.com/in/ "KEYWORD"', ph: 'Enter job title or company' },
+            { id: 'reddit', cat: 'social', icon: '🤖', title: 'Reddit Threads', desc: 'Search Reddit discussions.', tmpl: 'site:reddit.com KEYWORD', ph: 'Enter topic' },
+            { id: 'quora', cat: 'social', icon: '❓', title: 'Quora Questions', desc: 'Find Q&A content.', tmpl: 'site:quora.com KEYWORD', ph: 'Enter topic' },
+
+            // Content
+            { id: 'curation', cat: 'content', icon: '💎', title: 'Curated Lists', desc: 'Find "Top 10" or "Best of" lists.', tmpl: 'intitle:"top * KEYWORD" OR intitle:"best * KEYWORD"', ph: 'Enter topic' },
+            { id: 'case-study', cat: 'content', icon: '🔬', title: 'Case Studies', desc: 'Find data-driven content.', tmpl: 'KEYWORD intitle:"case study"', ph: 'Enter topic' },
+            { id: 'infographic', cat: 'content', icon: '🖼️', title: 'Infographics', desc: 'Find visual content to share.', tmpl: 'KEYWORD intitle:infographic inurl:infographic', ph: 'Enter topic' }
+        ];
+
+        const operators = [
+            { code: 'site:', desc: 'Restrict results to a specific domain' },
+            { code: 'inurl:', desc: 'Find text within the URL' },
+            { code: 'intitle:', desc: 'Find text within the page title' },
+            { code: 'intext:', desc: 'Find text within the body content' },
+            { code: 'filetype:', desc: 'Search for specific file extensions (pdf, xls)' },
+            { code: 'related:', desc: 'Find sites similar to a domain' },
+            { code: 'cache:', desc: 'View Google\'s cached version' },
+            { code: '-', desc: 'Exclude a word or site' },
+            { code: 'OR', desc: 'Find pages with either word' },
+            { code: '""', desc: 'Exact match search' },
+            { code: '*', desc: 'Wildcard (any word)' },
+            { code: 'AROUND(X)', desc: 'Words within X distance of each other' },
+            { code: 'before:', desc: 'Results before YYYY-MM-DD' },
+            { code: 'after:', desc: 'Results after YYYY-MM-DD' }
+        ];
+
+        // --- APP STATE ---
+        let mode = 'presets'; // 'presets' or 'builder'
+        let currentPreset = presets[0];
+        
+        const input = document.getElementById('main-input');
+        const output = document.getElementById('dork-output');
+        const grid = document.getElementById('grid');
+        const builderGrid = document.getElementById('builder-grid');
+        const toast = document.getElementById('toast');
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderPresets('all');
+            renderBuilder();
+            updateDork();
+            
+            input.addEventListener('input', updateDork);
+            document.getElementById('search-btn').addEventListener('click', doSearch);
+            document.getElementById('clear-btn').addEventListener('click', () => {
+                input.value = '';
+                updateDork();
+                input.focus();
+            });
+        }
+
+        // --- RENDERERS ---
+        function renderPresets(filter) {
+            grid.innerHTML = '';
+            presets.forEach(preset => {
+                if (filter !== 'all' && preset.cat !== filter) return;
+
+                const card = document.createElement('div');
+                card.className = `preset-card ${currentPreset.id === preset.id ? 'active' : ''}`;
+                card.onclick = () => selectPreset(preset);
+                card.innerHTML = `
+                    <span class="card-icon">${preset.icon}</span>
+                    <h3 class="card-title">${preset.title}</h3>
+                    <p class="card-desc">${preset.desc}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderBuilder() {
+            builderGrid.innerHTML = '';
+            operators.forEach(op => {
+                const btn = document.createElement('div');
+                btn.className = 'operator-btn';
+                btn.innerHTML = `
+                    <span class="op-code">${op.code}</span>
+                    <span class="op-desc">${op.desc}</span>
+                `;
+                btn.onclick = () => appendOperator(op.code);
+                builderGrid.appendChild(btn);
+            });
+        }
+
+        // --- ACTIONS ---
+        function switchView(viewName) {
+            mode = viewName;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (mode === 'builder') {
+                document.getElementById('view-presets').style.display = 'none';
+                document.getElementById('view-builder').style.display = 'block';
+                input.placeholder = 'Click operators below or type to build query...';
+                input.value = '';
+                output.textContent = '';
+            } else {
+                document.getElementById('view-presets').style.display = 'block';
+                document.getElementById('view-builder').style.display = 'none';
+                selectPreset(currentPreset); // Restore last preset
+            }
+        }
+
+        function filterPresets(cat) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPresets(cat);
+        }
+
+        function selectPreset(preset) {
+            currentPreset = preset;
+            input.placeholder = preset.ph;
+            input.value = ''; // Reset input on switch for cleanliness
+            
+            // Re-render to show active state
+            const activeFilter = document.querySelector('.cat-btn.active').innerText.toLowerCase() === 'all' 
+                ? 'all' : document.querySelector('.cat-btn.active').onclick.toString().match(/'(.*?)'/)[1];
+            renderPresets(activeFilter);
+            
+            updateDork();
+        }
+
+        function appendOperator(op) {
+            // Add space if input not empty and doesn't end in space
+            if (input.value.length > 0 && !input.value.endsWith(' ')) {
+                input.value += ' ';
+            }
+            input.value += op;
+            input.focus();
+            updateDork();
+        }
+
+        function updateDork() {
+            const val = input.value.trim();
+            
+            if (mode === 'builder') {
+                output.textContent = val || 'Your query will appear here...';
+                return;
+            }
+
+            // Preset Mode Logic
+            let template = currentPreset.tmpl;
+            const safeVal = val || (template.includes('DOMAIN') ? 'example.com' : 'keyword');
+            
+            // Replace generic placeholders
+            template = template.replace(/KEYWORD|DOMAIN|COMPETITOR/g, safeVal);
+            output.textContent = template;
+        }
+
+        function doSearch() {
+            const query = output.textContent;
+            if (query && query !== '...') {
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            }
+        }
+
+        function copyDork() {
+            navigator.clipboard.writeText(output.textContent).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
